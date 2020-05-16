@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Where?</title>
+	<style>
+		/* necessary defaults for map is visable */
+		html, body {
+			height: 100%;
+			margin: 0;
+			padding: 0;
+		}
+		#map {
+			height: 800px;
+			width: 100%;
+		}
+
+		/* button styles */
+		.button,
+		.button-selected,
+		.dropdown {
+			cursor: pointer;
+			font-family: Arial, sans-serif;
+			font-size: 12px;
+			line-height: 160%;
+			-moz-border-radius: 2px;
+			box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.35);
+			-moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.35);
+			-webkit-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.35);
+			-webkit-user-select: none;
+			-moz-user-select: none;
+		}
+
+		.button,
+		.button-selected {
+			padding: 0 6px;
+			border-radius: 2px;
+			margin: 5px;
+			text-align: center;
+			overflow: hidden;
+		}
+
+		.button {
+			color: #000;
+			border: 1px solid #a9bbdf;
+			/* old browsers */
+			background: #fefefe;
+			/* firefox */
+			background: -moz-linear-gradient(top, #fefefe 0%, #f3f3f3 100%);
+			/* webkit */
+			background: -webkit-gradient(
+			linear,
+			left top,
+			left bottom,
+			color-stop(0%, #fefefe),
+			color-stop(100%, #f3f3f3)
+			);
+			/* ie */
+			filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#FEFEFE', endColorstr='#F3F3F3',GradientType=0);
+		}
+
+		.button-selected,
+		.button:hover {
+			border: 1px solid #678ac7;
+		}
+
+		.button-selected {
+			font-weight: bold;
+			color: #fff;
+			/* old browsers */
+			background: #6d8acc;
+			/* firefox */
+			background: -moz-linear-gradient(top, #6d8acc 0%, #7b98d9 100%);
+			/* webkit */
+			background: -webkit-gradient(
+			linear,
+			left top,
+			left bottom,
+			color-stop(0%, #6d8acc),
+			color-stop(100%, #7b98d9)
+			);
+			/* ie */
+			filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#6D8ACC', endColorstr='#7B98D9',GradientType=0);
+		}
+	</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script src="scripts/markers.js"></script>
+
+<script>
+	//make global variables that probably shouldn't be global
+	var mapCenter;
+	var bound;
+
+	//stuff to make custom icons easier
+	const iconBase = 'icons/';
+
+	let icons = {
+		scuba: {
+		icon: iconBase + 'scuba_diver.png'
+		},
+		instructor: {
+		icon: iconBase + 'instructor.png'
+		},
+		cave: {
+		icon: iconBase + 'cave.png'
+		},
+		vacation: {
+		icon: iconBase + 'vacation.png'
+		},
+		romantic: {
+		icon: iconBase + 'romantic.png'
+		},
+		activity: {
+		icon: iconBase + 'activity.png'
+		}
+	};
+
+	//function that is run by the Google callback
+	function initMap() {
+		const infowindow = new google.maps.InfoWindow();
+		const tooltip = new google.maps.InfoWindow();
+		mapCenter = new google.maps.LatLng(18,0);
+		bound = new google.maps.LatLngBounds();
+
+		// create map with default options to be modified later
+		const map = new google.maps.Map(document.getElementById("map"), {
+			zoom: 1,
+			center: mapCenter
+		});
+
+		// create a new marker for each saved location, then add it to the 
+		// bounds logic, and attach an info window
+		function placeMarker( loc ) {
+			const marker = new google.maps.Marker({
+				position : { lat: loc.position[0], lng: loc.position[1]},
+				map : map
+			});
+
+			bound.extend(marker.position);
+
+			//if it has a custom icon then attach it
+			if(loc.type){
+				marker.setIcon(icons[loc.type].icon)
+			}
+
+			//if it has an info window then attach it
+			if(loc.info){
+				google.maps.event.addListener(marker, 'click', function(){
+					infowindow.close(); // Close previously opened infowindow
+					infowindow.setContent(`<div id="infowindow">${loc.info}</div>`);
+					infowindow.open(map, marker);
+				});
+			}
+
+			// if it has a name add a tool tip
+			if(loc.name){
+				google.maps.event.addListener(marker, 'mouseover', function() {
+					tooltip.setContent(`<div id="infowindow">${loc.name}</div>`);
+					tooltip.open(map, marker);
+				});
+				google.maps.event.addListener(marker, 'mouseout', function() {
+					tooltip.close();
+				});
+			}
+		}
+
+		// Add Marker Function
+		function addMarker(loc){
+			let marker = new google.maps.Marker({
+				position : { lat: loc.position[0], lng: loc.position[1]},
+				draggable: true,
+				title: "test",
+				map : map
+			});
+
+			infowindow.close(); // Close previously opened infowindow
+			var contentString = '<div id="content">'+
+								'<h1 id="firstHeading" class="firstHeading">New Place</h1>'+
+								'<div id="bodyContent">'+
+								'<label>Name:</label>'+
+								'<input id="name" name="name" type="text" value="Place Name"><br><br>'+
+								'<label>Icon:</label>'+
+								'<input id="icon" name="icon" type="radio" value="scuba_diver">'+
+								'<img src="icons/scuba_diver.png" height="20">'+
+								'<input id="icon" name="icon" type="radio" value="vacation">'+
+								'<img src="icons/vacation.png" height="20">'+
+								'<input id="icon" name="icon" type="radio" value="romantic">'+
+								'<img src="icons/romantic.png" height="20">'+
+								'<input id="icon" name="icon" type="radio" value="activity">'+
+								'<img src="icons/activity.png" height="20"><br><br>'+
+								'<label>Info:</label><br>'+
+								'<textarea id="info" name="info" rows="10" cols="30">'+
+								'The cat was playing in the garden and stuff.</textarea>'+
+								'</div>'+
+								'</div>';
+			infowindow.setContent(`<div id="infowindow">${contentString}</div>`);
+			infowindow.open(map, marker);
+
+
+			// var marker = new google.maps.Marker({
+			// 	position : { lat: loc.position[0], lng: loc.position[1]},
+			// 	map:map,
+			// });
+		}
+		
+		// ITERATE ALL LOCATIONS. Pass every location to placeMarker
+		locations.forEach( placeMarker );
+
+		// Find the center of the saved locations and move the map to display everything
+		mapCenter =  bound.getCenter();
+		map.panTo(mapCenter);
+		map.fitBounds(bound);
+
+		// Add the view reset button
+		addResetControl(map);
+		// addDropDown(map);
+
+		// Add a listener to create a new marker if the user clicks on the map
+		google.maps.event.addListener(map, 'click', function(event){
+			// Add marker
+			addMarker({position:[event.latLng.lat(),event.latLng.lng()]});
+		});
+	}
+
+	// function addDropDown(map) {
+	// 	var dropdown = document.getElementById("dropdown-holder");
+	// 	map.controls[google.maps.ControlPosition.TOP_RIGHT].push(dropdown);
+	// }
+
+	function addResetControl(map) {
+		let control = document.createElement("DIV");
+		control.innerHTML = "Reset View";
+		control.className = "button";
+		control.index = 1;
+
+		// Add the control to the map
+		map.controls[google.maps.ControlPosition.TOP_RIGHT].push(control);
+
+		// When the button is clicked reset pan
+		google.maps.event.addDomListener(control, "click", function() {
+			//TODO add something to close any open infowindows
+			map.panTo(mapCenter);
+			map.fitBounds(bound);
+		});
+	}
+
+	//google.maps.event.addDomListener(window, "load", initialize);
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB8xhNCutsbSKt9PD26d61yzzjGHh7VGUo&callback=initMap"></script>
+</body>
+</html>

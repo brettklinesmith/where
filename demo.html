@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Window Demo</title>
+	<style>
+	</style>
+</head>
+<body>
+	
+
+
+	<!-- <div id="entry-window" style="border: 2px solid black;">
+		<FORM name="marker-data" action="" method="GET">
+			<p>Name: <input type="text" value="Place Name" name="name"></p>
+			<p>Icon: <input type="radio" value="scuba_diver" name="icon"> <img src="icons/scuba_diver.png" height="20">
+					 <input type="radio" value="vacation" name="icon"> <img src="icons/vacation.png" height="20">
+					 <input type="radio" value="romantic" name="icon"> <img src="icons/romantic.png" height="20">
+					 <input type="radio" value="activity" name="icon"> <img src="icons/activity.png" height="20">
+			</p>
+			<p><textarea name="info" rows="10" cols="30">The cat was playing in the garden.</textarea></p>
+			<p><input type="submit" value="Do it"></p>
+		</FORM>
+	</div> -->
+	
+
+
+	<div id="entry-window" style="border: 2px solid black;">
+		<form action="#" id="myForm">
+			<legend>New Place</legend>
+			<label>Name:</label>
+				<input id="name" name="name" type="text" value="Place Name"><br><br>
+			<label>Icon:</label>
+				<input id="icon" name="icon" type="radio" value="scuba_diver"> 	<img src="icons/scuba_diver.png" height="20">
+				<input id="icon" name="icon" type="radio" value="vacation"> 	<img src="icons/vacation.png" height="20">
+				<input id="icon" name="icon" type="radio" value="romantic"> 	<img src="icons/romantic.png" height="20">
+				<input id="icon" name="icon" type="radio" value="activity"> 	<img src="icons/activity.png" height="20">
+				<input id="icon" name="icon" type="radio" value="instructor"> 	<img src="icons/instructor.png" height="20">
+				<input id="icon" name="icon" type="radio" value="cave"> 		<img src="icons/cave.png" width="25"><br><br>
+			<label>Info:</label><br> 
+				<textarea id="info" name="info" rows="10" cols="30">The cat was playing in the garden.</textarea><br>
+			<button id="btnSubmit">Send</button>
+		</form>
+	</div>
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
+		  document
+			.getElementById('myForm')
+			.addEventListener('submit', handleForm);
+		});
+  
+		function handleForm(ev) {
+			ev.preventDefault(); //stop the page reloading
+			//console.dir(ev.target);
+			let myForm = ev.target;
+			let fd = new FormData(myForm);
+	
+			//look at all the contents
+			for (let key of fd.keys()) {
+				console.log(key, fd.get(key));
+			}
+			//let json = convertFD2JSON(fd);
+	
+			//send the request with the formdata
+			let url = 'http://localhost:3000/';
+			let req = new Request(url,{
+				body: fd,
+				method: 'POST'
+			});
+			//h.append('Content-type', 'application/json');
+	
+			//   let req = new Request(url, {
+			// 	headers: h,
+			// 	body: json,
+			// 	method: 'POST',
+			//   });
+			//console.log(req);
+
+			fetch(req)
+				.then((res) => res.json())
+				.then((data) => {
+					console.log('Response from server');
+					console.log(data);
+				})
+				.catch(console.warn);
+		}
+  
+		// function convertFD2JSON(formData) {
+		//   let obj = {};
+		//   for (let key of formData.keys()) {
+		// 	obj[key] = formData.get(key);
+		//   }
+		//   return JSON.stringify(obj);
+		// }
+	  </script>
+</body>
+</html>
